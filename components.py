@@ -31,10 +31,23 @@ def display_sidebar():
         col1, col2 = st.columns([100, 1])
         with col1:
             st.session_state.agent_mode = st.selectbox(
-                label="",
+                label="AIエージェント機能の選択",
                 options=[ct.AI_AGENT_MODE_ON, ct.AI_AGENT_MODE_OFF],
                 label_visibility="collapsed"
             )
+        
+        st.divider()
+        
+        # 問い合わせモードのトグル
+        st.markdown("## 問い合わせモード")
+        st.session_state.inquiry_mode = st.selectbox(
+            label="問い合わせモードの選択",
+            options=[ct.INQUIRY_MODE_OFF, ct.INQUIRY_MODE_ON],
+            label_visibility="collapsed"
+        )
+        
+        if st.session_state.inquiry_mode == ct.INQUIRY_MODE_ON:
+            st.info("問い合わせモードON：メッセージが担当者にメール通知されます", icon="📧")
         
         st.divider()
 

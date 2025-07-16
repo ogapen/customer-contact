@@ -5,6 +5,7 @@
 ############################################################
 # ライブラリの読み込み
 ############################################################
+import os
 from langchain_community.document_loaders import PyMuPDFLoader, Docx2txtLoader, TextLoader
 
 
@@ -18,8 +19,8 @@ from langchain_community.document_loaders import PyMuPDFLoader, Docx2txtLoader, 
 APP_NAME = "問い合わせ対応自動化AIエージェント"
 CHAT_INPUT_HELPER_TEXT = "こちらからメッセージを送信してください。"
 APP_BOOT_MESSAGE = "アプリが起動されました。"
-USER_ICON_FILE_PATH = "./images/user_icon.jpg"
-AI_ICON_FILE_PATH = "./images/ai_icon.jpg"
+USER_ICON_FILE_PATH = os.path.join(os.path.dirname(__file__), "images", "user_icon.jpg")
+AI_ICON_FILE_PATH = os.path.join(os.path.dirname(__file__), "images", "ai_icon.jpg")
 WARNING_ICON = ":material/warning:"
 ERROR_ICON = ":material/error:"
 SPINNER_TEXT = "回答生成中..."
@@ -107,6 +108,30 @@ SEARCH_CUSTOMER_COMMUNICATION_INFO_TOOL_DESCRIPTION = "顧客とのやりとり�
 SEARCH_WEB_INFO_TOOL_NAME = "search_web_tool"
 SEARCH_WEB_INFO_TOOL_DESCRIPTION = "自社サービス「HealthX」に関する質問で、Web検索が必要と判断した場合に使う"
 
+# 新しいツールの定義
+SEARCH_ALL_DOCUMENTS_TOOL_NAME = "search_all_documents_tool"
+SEARCH_ALL_DOCUMENTS_TOOL_DESCRIPTION = "全社文書から横断的に情報を検索したい時に使う（会社情報、サービス情報、顧客情報をまとめて検索）"
+CURRENT_TIME_TOOL_NAME = "get_current_time_tool"
+CURRENT_TIME_TOOL_DESCRIPTION = "現在の日時を取得したい時に使う"
+CALCULATE_TOOL_NAME = "calculate_tool"
+CALCULATE_TOOL_DESCRIPTION = "数値計算を行いたい時に使う（料金計算、期間計算など）"
+EMAIL_VALIDATION_TOOL_NAME = "email_validation_tool"
+EMAIL_VALIDATION_TOOL_DESCRIPTION = "メールアドレスの形式をチェックしたい時に使う"
+ORDER_STATUS_TOOL_NAME = "check_order_status_tool"
+ORDER_STATUS_TOOL_DESCRIPTION = "注文状況や配送状況を確認したい時に使う（模擬データを使用）"
+FAQ_SEARCH_TOOL_NAME = "faq_search_tool"
+FAQ_SEARCH_TOOL_DESCRIPTION = "よくある質問（FAQ）から関連する情報を検索したい時に使う"
+CONTACT_INFO_TOOL_NAME = "get_contact_info_tool"
+CONTACT_INFO_TOOL_DESCRIPTION = "会社の連絡先情報を取得したい時に使う"
+BUSINESS_HOURS_TOOL_NAME = "get_business_hours_tool"
+BUSINESS_HOURS_TOOL_DESCRIPTION = "営業時間やサポート時間を確認したい時に使う"
+PRICE_CALCULATOR_TOOL_NAME = "price_calculator_tool"
+PRICE_CALCULATOR_TOOL_DESCRIPTION = "商品価格の計算や割引適用の計算を行いたい時に使う"
+WEATHER_TOOL_NAME = "get_weather_info_tool"
+WEATHER_TOOL_DESCRIPTION = "天気情報を取得したい時に使う（配送に関する問い合わせ等で使用）"
+LANGUAGE_DETECTOR_TOOL_NAME = "detect_language_tool"
+LANGUAGE_DETECTOR_TOOL_DESCRIPTION = "入力テキストの言語を検出したい時に使う"
+
 
 # ==========================================
 # プロンプトテンプレート
@@ -168,3 +193,39 @@ STYLE = """
     }
 </style>
 """
+
+
+# ==========================================
+# 問い合わせモード関連
+# ==========================================
+INQUIRY_MODE_ON = "ON"
+INQUIRY_MODE_OFF = "OFF"
+
+# メール設定
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+EMAIL_SUBJECT = "【問い合わせ自動通知】新しい問い合わせが届きました"
+
+# 従業員情報ファイル
+EMPLOYEE_INFO_FILE = "従業員情報.csv"
+INQUIRY_HISTORY_FILE = "問い合わせ履歴.csv"
+
+# 問い合わせメール送信先
+INQUIRY_EMAIL_RECIPIENTS = [
+    "kenta@ogawara-tosouten.com",        # 管理者メール（実際のメールアドレスに変更してください）
+    "ogapen@gmail.com",      # サポートメール（実際のメールアドレスに変更してください）
+    "manager@yourcompany.com"       # マネージャーメール（必要に応じて追加）
+]
+
+# 環境変数からメールアドレスを取得（設定されている場合）
+def get_inquiry_email_recipients():
+    """
+    環境変数またはデフォルト設定から問い合わせメール送信先を取得
+    """
+    env_recipients = os.getenv("INQUIRY_EMAIL_RECIPIENTS", "")
+    if env_recipients:
+        # カンマ区切りで複数のメールアドレスを分割
+        return [email.strip() for email in env_recipients.split(",")]
+    else:
+        # デフォルトのメールアドレス
+        return INQUIRY_EMAIL_RECIPIENTS
