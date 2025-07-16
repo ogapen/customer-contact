@@ -580,343 +580,92 @@ def detect_language(param):
         return f"言語検出エラー: {str(e)}"
 
 ############################################################
-# 問い合わせ処理とメール送信機能
+# 会話履歴の問い合わせ機能
 ############################################################
-
-def process_inquiry(message, user_name="お客様"):
+def send_conversation_inquiry():
     """
-    問い合わせ処理を実行し、メール通知を送信します。
-    
-    Args:
-        message: 問い合わせ内容
-        user_name: 問い合わせ者名
+    会話履歴をまとめて問い合わせメールを送信する
     
     Returns:
-        処理結果メッセージ
+        str: 送信結果メッセージ
     """
-    logger = logging.getLogger(ct.LOGGER_NAME)
-    
     try:
-        # 問い合わせ内容の分析
-        inquiry_info = analyze_inquiry(message)
+        # 会話履歴の取得
+        conversation_history = get_conversation_summary()
         
-        # 担当者の割り振り
-        assigned_staff = assign_staff_member(inquiry_info)
-        
-        # 回答案の生成
-        response_suggestions = generate_response_suggestions(inquiry_info)
+        # メール内容の作成
+        email_content = f"""
+問い合わせ日時: {datetime.now().strftime('%Y年%m月%d日 %H:%M:%S')}
+
+【会話履歴】
+{conversation_history}
+
+【問い合わせ内容】
+上記の会話に関して、さらに詳しい情報が必要です。
+担当者からの連絡をお待ちしています。
+
+---
+このメールは自動送信されました。
+"""
         
         # メール送信
-        send_inquiry_email(message, user_name, inquiry_info, assigned_staff, response_suggestions)
+        recipients = ct.get_inquiry_email_recipients()
+        send_email(recipients, ct.EMAIL_SUBJECT, email_content)
         
-        logger.info(f"問い合わせ処理完了: {inquiry_info['category']}")
-        
-        return "問い合わせを受け付けました。担当者にメール通知を送信しました。"
-        
-    except Exception as e:
-        logger.error(f"問い合わせ処理エラー: {e}")
-        return "問い合わせの処理中にエラーが発生しました。"
-
-def analyze_inquiry(message):
-    """
-    問い合わせ内容を分析してカテゴリを判定します。
-    
-    Args:
-        message: 問い合わせ内容
-    
-    Returns:
-        分析結果（カテゴリ、緊急度など）
-    """
-    # 問い合わせカテゴリの判定
-    categories = {
-        "技術的なトラブル対応": ["ログイン", "エラー", "動かない", "使えない", "不具合", "システム", "接続"],
-        "商品・サービス問い合わせ": ["商品", "サービス", "料金", "価格", "プラン", "機能", "仕様"],
-        "契約・請求関連": ["契約", "請求", "支払い", "料金", "解約", "更新", "変更"],
-        "その他の問い合わせ": []
-    }
-    
-    message_lower = message.lower()
-    determined_category = "その他の問い合わせ"
-    
-    for category, keywords in categories.items():
-        if any(keyword in message_lower for keyword in keywords):
-            determined_category = category
-            break
-    
-    return {
-        "category": determined_category,
-        "content": message,
-        "urgency": "普通",  # 緊急度の判定ロジックを追加可能
-        "timestamp": datetime.now().strftime("%Y年%m月%d日 %H:%M:%S")
-    }
-
-def assign_staff_member(inquiry_info):
-    """
-    問い合わせ内容に基づいて担当者を割り振ります。
-    
-    Args:
-        inquiry_info: 問い合わせ情報
-    
-    Returns:
-        割り振られた担当者情報
-    """
-    # 模擬的な担当者データ
-    staff_members = {
-        "技術的なトラブル対応": [
-            {
-                "name": "棚橋由香里",
-                "department": "技術部",
-                "position": "課長",
-                "specialty": "品質管理とテスト実施",
-                "experience": "過去に同様の問い合わせに対応した経験があり"
-            },
-            {
-                "name": "山本和也",
-                "department": "技術部",
-                "position": "エンジニア",
-                "specialty": "製品の技術サポート",
-                "experience": "過去に同様のログイン問題に迅速に対応した実績があり"
-            }
-        ],
-        "商品・サービス問い合わせ": [
-            {
-                "name": "佐藤美咲",
-                "department": "営業部",
-                "position": "主任",
-                "specialty": "商品企画とマーケティング",
-                "experience": "商品に関する豊富な知識を持ち"
-            }
-        ],
-        "契約・請求関連": [
-            {
-                "name": "田中健太",
-                "department": "経理部",
-                "position": "係長",
-                "specialty": "契約管理と請求処理",
-                "experience": "契約関連の問い合わせに精通しており"
-            }
-        ]
-    }
-    
-    category = inquiry_info["category"]
-    if category in staff_members:
-        return staff_members[category]
-    else:
-        # デフォルト担当者
-        return [{
-            "name": "総合受付",
-            "department": "カスタマーサービス",
-            "position": "担当者",
-            "specialty": "総合的なカスタマーサポート",
-            "experience": "幅広い問い合わせに対応可能で"
-        }]
-
-def generate_response_suggestions(inquiry_info):
-    """
-    問い合わせ内容に基づいて回答案を生成します。
-    
-    Args:
-        inquiry_info: 問い合わせ情報
-    
-    Returns:
-        回答案のリスト
-    """
-    category = inquiry_info["category"]
-    
-    response_templates = {
-        "技術的なトラブル対応": [
-            {
-                "content": "パスワードリセットを行うための手順を案内します。",
-                "reasoning": "過去の問い合わせ履歴から、パスワードリセットが多くのログイン問題の解決に寄与しているため。"
-            },
-            {
-                "content": "システムのサポートチームに連絡し、直接サポートを受けることを提案します。",
-                "reasoning": "技術的なトラブルの場合、専門のサポートが必要なケースが多いため。"
-            },
-            {
-                "content": "ログイン試行時のエラーメッセージを確認し、それに基づいた対応を行います。",
-                "reasoning": "エラーメッセージは問題の特定に役立つ情報を提供するため。"
-            }
-        ],
-        "商品・サービス問い合わせ": [
-            {
-                "content": "商品の詳細な仕様書をお送りし、ご要望に最適なプランをご提案します。",
-                "reasoning": "商品について詳しく知ることで、適切な選択ができるため。"
-            },
-            {
-                "content": "無料トライアルをご利用いただき、実際にサービスを体験していただくことを提案します。",
-                "reasoning": "実際の使用感を確認することで、満足度の高い導入が可能なため。"
-            },
-            {
-                "content": "類似の導入事例をご紹介し、具体的な活用方法をご説明します。",
-                "reasoning": "他社の成功事例を参考にすることで、効果的な利用方法が分かるため。"
-            }
-        ],
-        "契約・請求関連": [
-            {
-                "content": "契約内容の詳細をご説明し、ご不明な点を解決いたします。",
-                "reasoning": "契約内容の理解不足が問題の原因となるケースが多いため。"
-            },
-            {
-                "content": "請求書の内訳を詳しく説明し、疑問点を解消いたします。",
-                "reasoning": "請求内容の透明性を高めることで、信頼関係の構築につながるため。"
-            },
-            {
-                "content": "支払い方法の変更や分割払いなど、柔軟な対応を検討します。",
-                "reasoning": "顧客の状況に応じた支払い方法の提案により、継続的な関係を維持できるため。"
-            }
-        ]
-    }
-    
-    if category in response_templates:
-        return response_templates[category]
-    else:
-        return [
-            {
-                "content": "お問い合わせの内容を詳しく確認し、最適な解決策をご提案します。",
-                "reasoning": "個別の事情に応じた対応が最も効果的なため。"
-            },
-            {
-                "content": "関連部署と連携し、包括的なサポートを提供します。",
-                "reasoning": "複数の部署が連携することで、より充実したサポートが可能なため。"
-            },
-            {
-                "content": "追加の資料やサポートツールをご提供し、問題解決をサポートします。",
-                "reasoning": "適切な情報提供により、お客様自身での問題解決が促進されるため。"
-            }
-        ]
-
-def send_inquiry_email(message, user_name, inquiry_info, assigned_staff, response_suggestions):
-    """
-    問い合わせ通知メールを送信します。
-    
-    Args:
-        message: 問い合わせ内容
-        user_name: 問い合わせ者名
-        inquiry_info: 問い合わせ情報
-        assigned_staff: 割り振られた担当者
-        response_suggestions: 回答案
-    """
-    logger = logging.getLogger(ct.LOGGER_NAME)
-    
-    try:
-        # メール本文の作成
-        email_body = create_email_body(message, user_name, inquiry_info, assigned_staff, response_suggestions)
-        
-        # 環境変数からメールアドレスを取得
-        email_recipients = ct.get_inquiry_email_recipients()
-        
-        # メール送信（実際の実装では、適切なSMTP設定が必要）
-        logger.info("問い合わせメール送信（模擬）")
-        logger.info(f"送信先: {email_recipients}")
-        logger.info(f"件名: {ct.EMAIL_SUBJECT}")
-        logger.info(f"本文: {email_body}")
-        
-        # 実際のメール送信コード（コメントアウト）
-        # send_email_smtp(email_recipients, ct.EMAIL_SUBJECT, email_body)
+        return f"問い合わせを送信しました。担当者から連絡があるまでお待ちください。"
         
     except Exception as e:
-        logger.error(f"メール送信エラー: {e}")
-        raise
+        logger = logging.getLogger(ct.LOGGER_NAME)
+        logger.error(f"会話履歴問い合わせ送信エラー: {e}")
+        return "問い合わせの送信に失敗しました。"
 
-def create_email_body(message, user_name, inquiry_info, assigned_staff, response_suggestions):
+def get_conversation_summary():
     """
-    メール本文を作成します。
-    
-    Args:
-        message: 問い合わせ内容
-        user_name: 問い合わせ者名
-        inquiry_info: 問い合わせ情報
-        assigned_staff: 割り振られた担当者
-        response_suggestions: 回答案
+    会話履歴をまとめて読みやすい形式で返す
     
     Returns:
-        メール本文
+        str: 整形された会話履歴
     """
-    # 担当者情報の整理
-    staff_info = ""
-    for staff in assigned_staff:
-        staff_info += f"{staff['name']}さんは、{staff['department']}の{staff['position']}として、{staff['specialty']}に関する専門知識を持っています。\n\n"
-        staff_info += f"{staff['experience']}ます。\n\n"
+    if not hasattr(st.session_state, 'messages') or not st.session_state.messages:
+        return "会話履歴がありません。"
     
-    # 回答案の整理
-    suggestions_text = ""
-    for i, suggestion in enumerate(response_suggestions, 1):
-        suggestions_text += f"＜{i}つ目＞\n\n"
-        suggestions_text += f"●内容: {suggestion['content']}\n\n"
-        suggestions_text += f"●根拠: {suggestion['reasoning']}\n\n"
+    summary = []
+    for i, message in enumerate(st.session_state.messages, 1):
+        role = "👤 ユーザー" if message["role"] == "user" else "🤖 AI"
+        content = message["content"]
+        summary.append(f"{i}. {role}: {content}\n")
     
-    # メール本文のテンプレート
-    email_body = f"""こちらは顧客問い合わせに対しての「担当者割り振り」と「回答・対応案の提示」を自動で行うAIアシスタントです。担当者は問い合わせ内容を確認し、対応してください。
+    return "\n".join(summary)
 
-================================
-
-【問い合わせ情報】
-
-・問い合わせ内容: {message}
-
-・カテゴリ: {inquiry_info['category']}
-
-・問い合わせ者: {user_name}
-
-・日時: {inquiry_info['timestamp']}
-
--------------------
-
-【メンション先の選定理由】
-
-{staff_info}
-
--------------------
-
-【回答・対応案】
-
-{suggestions_text}
-
--------------------
-
-【参照資料】
-
-・従業員情報.csv
-
-・問い合わせ履歴.csv
-"""
-    
-    return email_body
-
-def send_email_smtp(recipients, subject, body):
+def send_email(recipients, subject, content):
     """
-    SMTPを使用してメールを送信します。
+    メール送信関数
     
     Args:
         recipients: 送信先メールアドレスのリスト
-        subject: 件名
-        body: 本文
+        subject: メール件名
+        content: メール本文
     """
-    # 実際の実装では、環境変数からSMTP設定を読み込む
-    # smtp_server = os.getenv("SMTP_SERVER", ct.SMTP_SERVER)
-    # smtp_port = int(os.getenv("SMTP_PORT", ct.SMTP_PORT))
-    # smtp_username = os.getenv("SMTP_USERNAME")
-    # smtp_password = os.getenv("SMTP_PASSWORD")
+    # SMTP設定の取得
+    smtp_host = os.getenv("SMTP_HOST", ct.SMTP_SERVER)
+    smtp_port = int(os.getenv("SMTP_PORT", ct.SMTP_PORT))
+    smtp_username = os.getenv("SMTP_USERNAME", "")
+    smtp_password = os.getenv("SMTP_PASSWORD", "")
     
-    # 実際のメール送信処理（コメントアウト）
-    # msg = MIMEMultipart()
-    # msg['From'] = smtp_username
-    # msg['Subject'] = subject
-    # msg.attach(MIMEText(body, 'plain', 'utf-8'))
+    if not smtp_username or not smtp_password:
+        raise Exception("SMTP認証情報が設定されていません。")
     
-    # try:
-    #     server = smtplib.SMTP(smtp_server, smtp_port)
-    #     server.starttls()
-    #     server.login(smtp_username, smtp_password)
-    #     
-    #     for recipient in recipients:
-    #         msg['To'] = recipient
-    #         server.send_message(msg)
-    #         del msg['To']
-    #     
-    #     server.quit()
-    # except Exception as e:
-    #     raise e
+    # メール作成
+    msg = MIMEMultipart()
+    msg['From'] = smtp_username
+    msg['To'] = ", ".join(recipients)
+    msg['Subject'] = subject
     
-    pass  # 実際の実装では上記のコードを有効化
+    # メール本文の追加
+    msg.attach(MIMEText(content, 'plain', 'utf-8'))
+    
+    # メール送信
+    with smtplib.SMTP(smtp_host, smtp_port) as server:
+        server.starttls()
+        server.login(smtp_username, smtp_password)
+        server.send_message(msg)

@@ -151,22 +151,7 @@ if chat_message:
     with st.chat_message("user", avatar=ct.USER_ICON_FILE_PATH):
         st.markdown(chat_message)
     
-    # 2. 問い合わせモードの処理
-    if hasattr(st.session_state, 'inquiry_mode') and st.session_state.inquiry_mode == ct.INQUIRY_MODE_ON:
-        try:
-            # 問い合わせ処理を実行
-            inquiry_result = utils.process_inquiry(chat_message)
-            
-            # 問い合わせ受付完了メッセージを表示
-            with st.chat_message("assistant", avatar=ct.AI_ICON_FILE_PATH):
-                st.success(f"📧 {inquiry_result}")
-                st.info("通常のAI回答に加えて、担当者への通知も送信されました。")
-        except Exception as e:
-            logger.error(f"問い合わせ処理エラー: {e}")
-            with st.chat_message("assistant", avatar=ct.AI_ICON_FILE_PATH):
-                st.error("問い合わせ通知の送信中にエラーが発生しました。")
-    
-    # 3. AIからの回答生成
+    # 2. AIからの回答生成
     try:
         with st.spinner(ct.SPINNER_TEXT):
             result = utils.execute_agent_or_chain(chat_message)
@@ -175,10 +160,10 @@ if chat_message:
         st.error(utils.build_error_message(ct.GET_LLM_RESPONSE_ERROR_MESSAGE), icon=ct.ERROR_ICON)
         st.stop()
     
-    # 4. 古い会話履歴の削除（メモリ管理）
+    # 3. 古い会話履歴の削除（メモリ管理）
     utils.delete_old_conversation_log(result)
 
-    # 5. AIの回答を画面に表示
+    # 4. AIの回答を画面に表示
     with st.chat_message("assistant", avatar=ct.AI_ICON_FILE_PATH):
         try:
             cn.display_llm_response(result)
@@ -188,9 +173,15 @@ if chat_message:
             st.error(utils.build_error_message(ct.DISP_ANSWER_ERROR_MESSAGE), icon=ct.ERROR_ICON)
             st.stop()
     
-    # 6. 会話履歴への保存
+    # 5. 会話履歴への保存
     st.session_state.messages.append({"role": "user", "content": chat_message})
     st.session_state.messages.append({"role": "assistant", "content": result})
+
+# =============================================================================
+# 問い合わせボタン
+# =============================================================================
+# 問い合わせボタンの表示
+cn.display_inquiry_button()
 
 # =============================================================================
 # ユーザーフィードバック機能

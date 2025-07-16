@@ -37,19 +37,6 @@ def display_sidebar():
             )
         
         st.divider()
-        
-        # 問い合わせモードのトグル
-        st.markdown("## 問い合わせモード")
-        st.session_state.inquiry_mode = st.selectbox(
-            label="問い合わせモードの選択",
-            options=[ct.INQUIRY_MODE_OFF, ct.INQUIRY_MODE_ON],
-            label_visibility="collapsed"
-        )
-        
-        if st.session_state.inquiry_mode == ct.INQUIRY_MODE_ON:
-            st.info("問い合わせモードON：メッセージが担当者にメール通知されます", icon="📧")
-        
-        st.divider()
 
         st.markdown("**【AIエージェントとは】**")
         st.code("質問に対して適切と考えられる回答を生成できるまで、生成AIロボット自身に試行錯誤してもらえる機能です。自身の回答に対して評価・改善を繰り返すことで、より優れた回答を生成できます。", wrap_lines=True)
@@ -165,3 +152,24 @@ def display_feedback_button():
                 st.session_state.feedback_no_flg = True
                 # 画面の際描画
                 st.rerun()
+
+
+def display_inquiry_button():
+    """
+    問い合わせボタンの表示
+    """
+    import utils
+    
+    # 会話履歴がある場合のみボタンを表示
+    if hasattr(st.session_state, 'messages') and st.session_state.messages:
+        st.markdown("---")
+        st.markdown("### 💬 さらに詳しい情報が必要な場合")
+        st.markdown(ct.INQUIRY_BUTTON_TEXT)
+        
+        if st.button(ct.INQUIRY_BUTTON_LABEL, type="primary"):
+            with st.spinner("問い合わせを送信中..."):
+                result = utils.send_conversation_inquiry()
+                if "送信しました" in result:
+                    st.success(result)
+                else:
+                    st.error(result)

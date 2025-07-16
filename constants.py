@@ -196,15 +196,17 @@ STYLE = """
 
 
 # ==========================================
-# 問い合わせモード関連
+# 問い合わせ機能関連
 # ==========================================
-INQUIRY_MODE_ON = "ON"
-INQUIRY_MODE_OFF = "OFF"
+INQUIRY_BUTTON_TEXT = "問い合わせが必要ですか？"
+INQUIRY_BUTTON_LABEL = "問い合わせを送信"
+INQUIRY_SUCCESS_MESSAGE = "問い合わせを送信しました。担当者から連絡があるまでお待ちください。"
+INQUIRY_ERROR_MESSAGE = "問い合わせの送信に失敗しました。"
 
 # メール設定
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
-EMAIL_SUBJECT = "【問い合わせ自動通知】新しい問い合わせが届きました"
+EMAIL_SUBJECT = "【問い合わせ】会話履歴の問い合わせが届きました"
 
 # 従業員情報ファイル
 EMPLOYEE_INFO_FILE = "従業員情報.csv"
