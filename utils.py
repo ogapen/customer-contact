@@ -580,6 +580,48 @@ def detect_language(param):
         return f"言語検出エラー: {str(e)}"
 
 ############################################################
+# メール設定テスト機能
+############################################################
+def test_email_settings():
+    """
+    メール設定をテストする関数
+    
+    Returns:
+        str: テスト結果メッセージ
+    """
+    logger = logging.getLogger(ct.LOGGER_NAME)
+    
+    try:
+        # SMTP設定の取得
+        smtp_host = os.getenv("SMTP_HOST", ct.SMTP_SERVER)
+        smtp_port = int(os.getenv("SMTP_PORT", ct.SMTP_PORT))
+        smtp_username = os.getenv("SMTP_USERNAME", "")
+        smtp_password = os.getenv("SMTP_PASSWORD", "")
+        
+        logger.info(f"SMTP設定確認: {smtp_host}:{smtp_port}")
+        logger.info(f"ユーザー名: {smtp_username}")
+        logger.info(f"パスワード設定: {'設定済み' if smtp_password else '未設定'}")
+        
+        if not smtp_username:
+            return "❌ SMTP_USERNAMEが設定されていません"
+        
+        if not smtp_password:
+            return "❌ SMTP_PASSWORDが設定されていません"
+        
+        # 送信先の確認
+        recipients = ct.get_inquiry_email_recipients()
+        logger.info(f"送信先: {recipients}")
+        
+        if not recipients:
+            return "❌ 送信先メールアドレスが設定されていません"
+        
+        return f"✅ 設定確認完了 - 送信先: {', '.join(recipients)}"
+        
+    except Exception as e:
+        logger.error(f"設定確認エラー: {e}")
+        return f"❌ 設定確認エラー: {str(e)}"
+
+############################################################
 # 会話履歴の問い合わせ機能
 ############################################################
 def send_conversation_inquiry():
@@ -589,9 +631,12 @@ def send_conversation_inquiry():
     Returns:
         str: 送信結果メッセージ
     """
+    logger = logging.getLogger(ct.LOGGER_NAME)
+    
     try:
         # 会話履歴の取得
         conversation_history = get_conversation_summary()
+        logger.info(f"会話履歴を取得: {len(conversation_history)} 文字")
         
         # メール内容の作成
         email_content = f"""
@@ -610,14 +655,16 @@ def send_conversation_inquiry():
         
         # メール送信
         recipients = ct.get_inquiry_email_recipients()
+        logger.info(f"メール送信先: {recipients}")
         send_email(recipients, ct.EMAIL_SUBJECT, email_content)
         
+        logger.info("会話履歴問い合わせ送信完了")
         return f"問い合わせを送信しました。担当者から連絡があるまでお待ちください。"
         
     except Exception as e:
-        logger = logging.getLogger(ct.LOGGER_NAME)
         logger.error(f"会話履歴問い合わせ送信エラー: {e}")
-        return "問い合わせの送信に失敗しました。"
+        logger.error(f"エラーの詳細: {type(e).__name__}: {str(e)}")
+        return f"問い合わせの送信に失敗しました。エラー: {str(e)}"
 
 def get_conversation_summary():
     """
@@ -646,26 +693,40 @@ def send_email(recipients, subject, content):
         subject: メール件名
         content: メール本文
     """
-    # SMTP設定の取得
-    smtp_host = os.getenv("SMTP_HOST", ct.SMTP_SERVER)
-    smtp_port = int(os.getenv("SMTP_PORT", ct.SMTP_PORT))
-    smtp_username = os.getenv("SMTP_USERNAME", "")
-    smtp_password = os.getenv("SMTP_PASSWORD", "")
+    logger = logging.getLogger(ct.LOGGER_NAME)
     
-    if not smtp_username or not smtp_password:
-        raise Exception("SMTP認証情報が設定されていません。")
-    
-    # メール作成
-    msg = MIMEMultipart()
-    msg['From'] = smtp_username
-    msg['To'] = ", ".join(recipients)
-    msg['Subject'] = subject
-    
-    # メール本文の追加
-    msg.attach(MIMEText(content, 'plain', 'utf-8'))
-    
-    # メール送信
-    with smtplib.SMTP(smtp_host, smtp_port) as server:
-        server.starttls()
-        server.login(smtp_username, smtp_password)
-        server.send_message(msg)
+    try:
+        # SMTP設定の取得
+        smtp_host = os.getenv("SMTP_HOST", ct.SMTP_SERVER)
+        smtp_port = int(os.getenv("SMTP_PORT", ct.SMTP_PORT))
+        smtp_username = os.getenv("SMTP_USERNAME", "")
+        smtp_password = os.getenv("SMTP_PASSWORD", "")
+        
+        logger.info(f"SMTP設定: {smtp_host}:{smtp_port}, ユーザー: {smtp_username}")
+        
+        if not smtp_username or not smtp_password:
+            raise Exception("SMTP認証情報が設定されていません。環境変数SMTP_USERNAMEとSMTP_PASSWORDを設定してください。")
+        
+        # メール作成
+        msg = MIMEMultipart()
+        msg['From'] = smtp_username
+        msg['To'] = ", ".join(recipients)
+        msg['Subject'] = subject
+        
+        # メール本文の追加
+        msg.attach(MIMEText(content, 'plain', 'utf-8'))
+        
+        # メール送信
+        logger.info("SMTP接続を開始")
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls()
+            logger.info("SMTP認証を開始")
+            server.login(smtp_username, smtp_password)
+            logger.info("メール送信を開始")
+            server.send_message(msg)
+            logger.info("メール送信完了")
+            
+    except Exception as e:
+        logger.error(f"メール送信エラー: {e}")
+        logger.error(f"エラーの詳細: {type(e).__name__}: {str(e)}")
+        raise
