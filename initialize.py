@@ -102,9 +102,6 @@ def initialize_session_state():
         st.session_state.answer_flg = False
         st.session_state.dissatisfied_reason = ""
         st.session_state.feedback_no_reason_send_flg = False
-        
-        # 問い合わせモードの初期化
-        st.session_state.inquiry_mode = ct.INQUIRY_MODE_OFF
 
 ############################################################
 # セッションID生成
