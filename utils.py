@@ -666,6 +666,56 @@ def send_conversation_inquiry():
         logger.error(f"エラーの詳細: {type(e).__name__}: {str(e)}")
         return f"問い合わせの送信に失敗しました。エラー: {str(e)}"
 
+def send_conversation_inquiry_test():
+    """
+    会話履歴をまとめて問い合わせメールを送信する（テストモード）
+    
+    Returns:
+        str: 送信結果メッセージ
+    """
+    logger = logging.getLogger(ct.LOGGER_NAME)
+    
+    try:
+        # 会話履歴の取得
+        conversation_history = get_conversation_summary()
+        logger.info(f"会話履歴を取得: {len(conversation_history)} 文字")
+        
+        # メール内容の作成
+        email_content = f"""
+問い合わせ日時: {datetime.now().strftime('%Y年%m月%d日 %H:%M:%S')}
+
+【会話履歴】
+{conversation_history}
+
+【問い合わせ内容】
+上記の会話に関して、さらに詳しい情報が必要です。
+担当者からの連絡をお待ちしています。
+
+---
+このメールは自動送信されました。
+"""
+        
+        # メール送信先の取得
+        recipients = ct.get_inquiry_email_recipients()
+        logger.info(f"メール送信先: {recipients}")
+        
+        # テストモード：実際のメール送信はせずにログに記録
+        logger.info("=== テストモード - メール送信内容 ===")
+        logger.info(f"送信先: {recipients}")
+        logger.info(f"件名: {ct.EMAIL_SUBJECT}")
+        logger.info(f"本文: {email_content}")
+        logger.info("=== テストモード終了 ===")
+        
+        return f"✅ 問い合わせ処理完了（テストモード）\n送信先: {', '.join(recipients)}\n会話履歴: {len(conversation_history)} 文字"
+        
+    except Exception as e:
+        logger.error(f"会話履歴問い合わせ送信エラー: {e}")
+        logger.error(f"エラーの詳細: {type(e).__name__}: {str(e)}")
+        return f"❌ 問い合わせの送信に失敗しました。エラー: {str(e)}"
+
+############################################################
+# 会話履歴の問い合わせ機能
+############################################################
 def get_conversation_summary():
     """
     会話履歴をまとめて読みやすい形式で返す

@@ -166,7 +166,7 @@ def display_inquiry_button():
         st.markdown("### 💬 さらに詳しい情報が必要な場合")
         st.markdown(ct.INQUIRY_BUTTON_TEXT)
         
-        col1, col2 = st.columns([2, 1])
+        col1, col2, col3 = st.columns([2, 1, 1])
         
         with col1:
             if st.button(ct.INQUIRY_BUTTON_LABEL, type="primary"):
@@ -178,6 +178,15 @@ def display_inquiry_button():
                         st.error(result)
         
         with col2:
+            if st.button("テストモード", type="secondary"):
+                with st.spinner("テスト実行中..."):
+                    result = utils.send_conversation_inquiry_test()
+                    if "✅" in result:
+                        st.success(result)
+                    else:
+                        st.error(result)
+        
+        with col3:
             if st.button("設定テスト", type="secondary"):
                 with st.spinner("設定を確認中..."):
                     result = utils.test_email_settings()
