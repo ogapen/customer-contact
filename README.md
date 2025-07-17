@@ -1,89 +1,75 @@
-# 問い合わせ対応自動化AIエージェント
+# 顧客問い合わせ対応AIアプリケーション
 
-このアプリケーションは、顧客からの問い合わせに対してAIが自動で回答するシステムです。問い合わせモード機能により、担当者への自動通知も可能です。
+このアプリケーションは、顧客からの問い合わせに対してAIが自動で回答するシステムです。
 
-## 🚀 機能
+## 🚀 クイックスタート
 
-### 基本機能
-- **AIチャットボット**: 顧客の質問に対してAIが自動回答
-- **AIエージェント機能**: より高度な回答生成のための試行錯誤機能
-- **RAG（Retrieval-Augmented Generation）**: 社内文書を参照した回答生成
-- **ユーザーフィードバック**: 回答の品質向上のためのフィードバック機能
-
-### 問い合わせモード機能
-- **ON/OFF切り替え**: サイドバーから簡単に切り替え可能
-- **自動担当者割り振り**: 問い合わせ内容に基づいて適切な担当者を選出
-- **メール通知**: 指定されたメールアドレスに問い合わせ内容を通知
-- **回答案の自動生成**: 問い合わせに対する複数の解決策を提案
-
-## 📋 設定方法
-
-### ローカル環境
-1. 必要なパッケージをインストール：
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. 環境変数を設定（`.env`ファイルを作成）：
-   ```env
-   OPENAI_API_KEY=your_openai_api_key_here
-   INQUIRY_EMAIL_RECIPIENTS=admin@yourcompany.com,support@yourcompany.com
-   ```
-
-3. アプリケーションを起動：
-   ```bash
-   streamlit run customer-contact/main.py
-   ```
-
-### Streamlit Cloud
-1. GitHubリポジトリをStreamlit Cloudに接続
-2. Secrets設定で以下を追加：
-   ```toml
-   OPENAI_API_KEY = "your_openai_api_key_here"
-   INQUIRY_EMAIL_RECIPIENTS = "admin@yourcompany.com,support@yourcompany.com"
-   ```
-
-## 📧 問い合わせモード
-
-### メールアドレス設定
-`constants.py`の`INQUIRY_EMAIL_RECIPIENTS`または環境変数で設定：
-
-```python
-INQUIRY_EMAIL_RECIPIENTS = [
-    "admin@yourcompany.com",
-    "support@yourcompany.com"
-]
+### 1. アプリケーションの起動
+```bash
+./start.sh
 ```
 
-### 使用方法
-1. サイドバーで問い合わせモードを「ON」に設定
-2. チャット欄からメッセージを送信
-3. システムが自動的に担当者に通知メールを送信
+### 2. ブラウザでアクセス
+```
+http://localhost:8504
+```
 
-## 📁 プロジェクト構造
+## 📁 ファイル構成
 
 ```
 customer-contact/
-├── main.py                 # メインアプリケーション
-├── initialize.py           # 初期化処理
-├── components.py           # UI コンポーネント
-├── constants.py            # 定数定義
-├── utils.py                # ユーティリティ関数
-├── requirements.txt        # 依存パッケージ
-└── data/                   # RAG用データ
-    ├── company/           # 会社情報
-    ├── service/           # サービス情報
-    └── customer/          # 顧客情報
+├── main.py              # メイン処理（アプリケーションの起動ポイント）
+├── initialize.py        # 初期化処理（AIエージェントの設定）
+├── utils.py            # ユーティリティ関数（RAG処理、データベース操作）
+├── components.py       # UI部品（画面表示の処理）
+├── constants.py        # 設定値（定数、メッセージ、プロンプト）
+├── .env               # 環境変数（APIキーの設定）
+├── start.sh           # 起動スクリプト
+└── data/              # 学習データ
+    ├── company/       # 会社情報
+    ├── service/       # サービス情報
+    └── customer/      # 顧客情報
 ```
 
-## 🛠️ 技術スタック
+## 🔧 設定
 
-- **Frontend**: Streamlit
-- **AI/ML**: OpenAI GPT-4, LangChain
-- **Vector Database**: ChromaDB
-- **Document Processing**: PyMuPDF, python-docx
-- **Email**: SMTP (Gmail対応)
+### 環境変数の設定
+`.env`ファイルに以下を設定してください：
 
-## 📝 ライセンス
+```
+# 必須：OpenAI APIキー
+OPENAI_API_KEY=your_openai_api_key_here
 
-このプロジェクトはMITライセンスの下で公開されています。
+# オプション：Web検索機能を使用する場合
+SERPAPI_API_KEY=your_serpapi_key_here
+```
+
+## 📋 機能
+
+- **AIチャット機能**: 顧客からの質問に自動回答
+- **RAG検索**: 社内文書を参照した正確な回答
+- **Web検索**: 必要に応じてリアルタイム情報の検索
+- **フィードバック機能**: 回答品質の改善
+- **会話履歴管理**: 長い会話の自動管理
+
+## 🛠️ トラブルシューティング
+
+### アプリケーションが起動しない場合
+1. `.env`ファイルにOPENAI_API_KEYが設定されているか確認
+2. 仮想環境が正しく作成されているか確認
+3. `logs/application.log`でエラーログを確認
+
+### 初期化エラーが発生する場合
+1. `data/`フォルダに必要なファイルがあるか確認
+2. OpenAI APIキーが有効か確認
+3. ログファイルで詳細なエラーを確認
+
+## 📝 ログ確認
+
+```bash
+# リアルタイムログ表示
+tail -f logs/application.log
+
+# 最新のエラーログ確認
+grep ERROR logs/application.log | tail -10
+```
